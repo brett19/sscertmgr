@@ -80,39 +80,39 @@ func CreateAuthority(config *AuthorityConfig) (*AuthorityData, error) {
 func LoadAuthority(certPath, keyPath string) (*AuthorityData, error) {
 	caCertData, err := ioutil.ReadFile(certPath)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to read cert file: %s", err)
 	}
 
 	var block *pem.Block
 	block, _ = pem.Decode(caCertData)
 	if block == nil {
-		panic("NO CERT")
+		return nil, fmt.Errorf("invalid certfificate PEM")
 	}
 	if block.Type != "CERTIFICATE" || len(block.Headers) != 0 {
-		panic("BAD CERT")
+		return nil, fmt.Errorf("missing CERTIFICATE block")
 	}
 
 	caCert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to parse certificate: %s", err)
 	}
 
 	caPrivData, err := ioutil.ReadFile(keyPath)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to read key file: %s", err)
 	}
 
 	block, _ = pem.Decode(caPrivData)
 	if block == nil {
-		panic("NO KEY")
+		return nil, fmt.Errorf("invalid key PEM")
 	}
 	if block.Type != "RSA PRIVATE KEY" || len(block.Headers) != 0 {
-		panic("BAD KEY")
+		return nil, fmt.Errorf("missing PRIVATE KEY block")
 	}
 
 	caPriv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to parse key: %s", err)
 	}
 
 	return &AuthorityData{
